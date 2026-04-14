@@ -231,53 +231,110 @@ python rag_run.py
 
 ## Query 1
 **What is Hyderabadi Biryani?**  
+```
 Expected Output: Description of dum cooked rice dish with spices and meat.
+```
 
 ## Query 2
 **Which foods are vegetarian?**
-
+```
 Expected Output:
 - Dosa  
 - Pulihora  
 - Quinoa Salad  
 - Avocado Toast  
 - Margherita Pizza  
-
+```
 ## Query 3
 **What healthy foods are available?**
-
+```
 Expected Output:
 - Quinoa Salad  
 - Greek Yogurt Bowl  
 - Lentil Soup  
 - Grilled Salmon  
-
+```
 ## Query 4
-**Tell me about international dishes**
-
-Expected Output:
-- Sushi  
-- Tacos  
-- Pad Thai  
-- Margherita Pizza  
-- Paella  
-
+**Tell me about Indian cultural foods**
+```
+Expected:
+- Biryani  
+- Samosa  
+- Paneer Butter Masala  
+```
 ## Query 5
 **What foods contain rice?**
-
+```
 Expected Output:
 - Hyderabadi Biryani  
 - Sushi  
 - Paella  
 - Pulihora  
+```
+## Query 6
+Which foods are high in protein?
+```
+Expected:
+- Grilled Salmon  
+- Greek Yogurt Bowl  
+- Pesarattu  
+```
+## Query 7
+What vegan options are available?
+```
+Expected:
+🧠 Retrieving relevant information to reason through your question...
 
+🔹 Source 1 (ID: 53):  
+"Hangi is a traditional Māori method of cooking meat and vegetables in an underground oven."
+
+🔹 Source 2 (ID: 35):  
+"Mapo tofu is a Sichuan dish featuring soft tofu in a spicy chili and bean-based sauce, typically with minced pork."
+
+🔹 Source 3 (ID: 55):  
+"Oka is a Samoan raw fish salad marinated in citrus and coconut milk, similar to ceviche."
+
+📚 These seem to be the most relevant pieces of information to answer your question.
+
+🤖 None are mentioned in the given context.
+```
+## Query 8
+Which foods can be grilled?
+```
+🧠 Retrieving relevant information to reason through your question...
+
+🔹 Source 1 (ID: 85):  
+"Grilled Salmon is a healthy seafood dish seasoned lightly and cooked on grill for high protein intake."
+
+🔹 Source 2 (ID: 67):  
+"Falafel consists of deep-fried balls of ground chickpeas or fava beans, typically served in pita bread."
+
+🔹 Source 3 (ID: 12):  
+"Tandoori chicken is chicken marinated in yogurt and spices, roasted in a tandoor."
+
+📚 These seem to be the most relevant pieces of information to answer your question.
+
+🤖 Grilled Salmon and Tandoori chicken can be grilled.
+```
 # Screenshots
 
-## System Running
-![System Running](screenshots/system.png)
+## Query 1
+![System Running](screenshots/query1.png)
+## Query 2
+![System Running](screenshots/query2.png)
+## Query 3
+![System Running](screenshots/query3.png)
+## Query 4
+![System Running](screenshots/query4.png)
+## Query 5
+![System Running](screenshots/query5.png)
+## Query 6
+![System Running](screenshots/query6.png)
+## Query 7
+![System Running](screenshots/query7.png)
+## Query 8
+![System Running](screenshots/query8.png)
 
-## Query Example
-![Query Example](screenshots/query1.png)
+# RAG Learning Reflection
 
-## Vegetarian Query
-![Vegetarian Query](screenshots/query2.png)
+For this project, I worked on improving a smart food assistant that can search and explain food-related information more effectively. My main task was to expand the dataset by adding 15 new meals from different cultures, along with several healthy food options. This helped the system understand a wider variety of user queries. By expanding the dataset, I improved how the system retrieves relevant information. Instead of depending only on exact keyword matches, the assistant can now identify results based on semantic meaning. This makes the responses more accurate and useful for users asking different types of questions. Through this process, I learned how structured data directly affects the quality of answers. Organising each food item with detailed fields such as ingredients, nutritional value, preparation method, and dietary classification helped the system return more precise and meaningful results. I also tested the assistant using different types of queries, including dietary restrictions, cultural cuisines, and healthy meal options. These tests confirmed that the retrieval process was working correctly and that the improvements were effective. Additionally, I practiced version control by forking the repository, making updates, committing changes, and pushing them to my own GitHub repository. This helped me better understand how to maintain a clean and traceable project history while working on a real project. Overall, this project gave me hands-on experience in improving a data-driven information retrieval system, testing and validating functional improvements, and documenting results in a structured and professional way.
