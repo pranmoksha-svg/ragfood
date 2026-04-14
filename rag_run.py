@@ -3,6 +3,8 @@ from upstash_vector import Index
 from dotenv import load_dotenv
 import json
 import requests
+import time
+from requests.exceptions import RequestException
 
 # Load environment variables
 load_dotenv()
@@ -22,13 +24,14 @@ with open("foods.json", "r", encoding="utf-8") as f:
     food_data = json.load(f)
 
 # Add only new items
-response = index.query(data="", top_k=1000, include_data=True)
+try:
+    response = index.query(data="", top_k=1000, include_data=True)
+except Exception as e:
+    print(f"Error querying Upstash Vector: {e}")
+    response = None
 
-
-# Debugging: Log the response if empty
-if not response or 'items' not in response or not response['items']:
+if not response or not hasattr(response, 'items'):
     print("⚠️ Warning: The response from Upstash Vector is empty or malformed.")
-    print("Response:", response)
     existing_ids = set()  # Fallback to an empty set
 else:
     existing_ids = set([item['id'] for item in response['items']])
@@ -59,10 +62,6 @@ def groq_generate_response(prompt):
     GROQ_API_URL = os.getenv("GROQ_API_URL")
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-    # Debugging: Verify environment variables
-    print("GROQ_API_URL:", GROQ_API_URL)
-    print("GROQ_API_KEY:", GROQ_API_KEY)
-
     if not GROQ_API_URL or not GROQ_API_KEY:
         raise ValueError("GROQ_API_URL and GROQ_API_KEY must be set in the environment variables.")
 
@@ -80,12 +79,24 @@ def groq_generate_response(prompt):
         "temperature": 0.7
     }
 
-    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+    retries = 3
+    for attempt in range(retries):
+        try:
+            response = requests.post(GROQ_API_URL, headers=headers, json=payload)
 
-    if response.status_code != 200:
-        raise Exception(f"Groq API call failed with status code {response.status_code}: {response.text}")
+            if response.status_code == 200:
+                return response.json()["choices"][0]["message"]["content"]
+            else:
+                print(f"Groq API call failed with status code {response.status_code}: {response.text}")
 
-    return response.json()["choices"][0]["message"]["content"]
+        except RequestException as e:
+            print(f"Error during Groq API call: {e}")
+
+        if attempt < retries - 1:
+            print("Retrying...")
+            time.sleep(2 ** attempt)  # Exponential backoff
+
+    raise Exception("Groq API call failed after multiple retries.")
 
 # Example usage of Groq API
 def rag_query(question):
