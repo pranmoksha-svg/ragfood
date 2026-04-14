@@ -448,5 +448,198 @@
   "text": "Suutei tsai is a traditional Mongolian milk tea made with green tea, milk, water, and salt.",
   "region": "Mongolia",
   "type": "Beverage"
+},
+{
+"id": "76",
+"name": "Hyderabadi Biryani",
+"category": "Cultural",
+"origin": "India",
+"description": "Hyderabadi Biryani is a famous rice dish prepared using basmati rice, marinated chicken, saffron, and aromatic spices. The dish is cooked using the dum method where layers of rice and meat are slow cooked in a sealed pot. This technique enhances flavor and aroma. It is commonly served during weddings, festivals, and special occasions and is considered a signature dish of Hyderabad.",
+"ingredients": ["basmati rice","chicken","yogurt","fried onions","mint","saffron","spices"],
+"preparation": "Layer marinated chicken with rice and cook on low heat using dum method.",
+"nutrition": "High protein, rich carbohydrates, mineral rich spices",
+"cultural_significance": "Traditional celebratory dish from Hyderabad",
+"dietary": ["non-vegetarian","gluten-free"]
 }
-]
+,
+{
+"id": "77",
+"name": "Dosa",
+"category": "Cultural",
+"origin": "India",
+"description": "Dosa is a thin crispy crepe made from fermented rice and urad dal batter. It is widely consumed as a breakfast dish in South India. The fermentation process improves digestion and enhances nutritional value. Dosa is served with chutney and sambar and comes in many variations including masala dosa and plain dosa.",
+"ingredients": ["rice","urad dal","salt","oil"],
+"preparation": "Spread fermented batter on hot pan and cook until crispy.",
+"nutrition": "Low fat, fermented probiotics, good carbohydrates",
+"cultural_significance": "Popular South Indian breakfast staple",
+"dietary": ["vegetarian","gluten-free"]
+}
+,
+{
+"id": "78",
+"name": "Pesarattu",
+"category": "Cultural",
+"origin": "India",
+"description": "Pesarattu is a protein rich pancake from Andhra Pradesh made with green gram batter. It does not require fermentation and is considered a healthy breakfast option. It is typically served with ginger chutney and sometimes filled with upma. The dish is nutritious and easy to prepare.",
+"ingredients": ["green gram","ginger","green chilli","salt","oil"],
+"preparation": "Grind soaked green gram and cook batter like dosa.",
+"nutrition": "High protein, high fiber, low fat",
+"cultural_significance": "Traditional Andhra breakfast dish",
+"dietary": ["vegetarian","vegan","gluten-free"]
+}
+,
+{
+"id": "79",
+"name": "Pulihora",
+"category": "Cultural",
+"origin": "India",
+"description": "Pulihora is a tangy rice dish flavored with tamarind and spices. It is commonly prepared during festivals and religious events. The dish has a balanced taste of sour and spicy flavors and stays fresh for long time. It is also popular as travel food.",
+"ingredients": ["rice","tamarind","peanuts","mustard seeds","curry leaves","turmeric"],
+"preparation": "Mix cooked rice with tamarind paste and tempered spices.",
+"nutrition": "Moderate carbs, healthy fats from peanuts",
+"cultural_significance": "Temple offering and festival food",
+"dietary": ["vegetarian","vegan","gluten-free"]
+}
+,
+{
+"id": "80",
+"name": "Gongura Chicken",
+"category": "Cultural",
+"origin": "India",
+"description": "Gongura Chicken is a spicy Andhra curry made using sorrel leaves and chicken. The tangy taste of gongura combined with spices creates a unique flavor. It is usually served with rice or roti. The dish is well known for its bold taste and nutritional benefits.",
+"ingredients": ["chicken","gongura leaves","onion","spices","oil"],
+"preparation": "Cook chicken with spices and mix with gongura paste.",
+"nutrition": "High protein, iron rich greens",
+"cultural_significance": "Signature Andhra spicy dish",
+"dietary": ["non-vegetarian","gluten-free"]
+}
+,
+{
+"id": "81",
+"name": "Quinoa Salad",
+"category": "Healthy",
+"origin": "Peru",
+"description": "Quinoa salad is a nutritious dish made with cooked quinoa and fresh vegetables. It is high in protein and fiber making it suitable for healthy diets. The dish is light and refreshing and commonly used in weight management meals.",
+"ingredients": ["quinoa","tomatoes","cucumber","olive oil","lemon","herbs"],
+"preparation": "Cook quinoa and mix with vegetables and dressing.",
+"nutrition": "High protein, high fiber, gluten-free",
+"cultural_significance": "Popular modern healthy meal",
+"dietary": ["vegetarian","vegan","gluten-free"]
+}
+,
+{
+"id": "82",
+"name": "Greek Yogurt Bowl",
+"category": "Healthy",
+"origin": "Greece",
+"description": "Greek yogurt bowl is a healthy breakfast made with thick yogurt, fruits, and nuts. It provides probiotics for digestion and protein for muscle growth. It is widely consumed by fitness enthusiasts and health conscious individuals.",
+"ingredients": ["greek yogurt","berries","nuts","honey","granola"],
+"preparation": "Add yogurt to bowl and top with fruits and nuts.",
+"nutrition": "High protein, probiotics, calcium rich",
+"cultural_significance": "Popular healthy breakfast worldwide",
+"dietary": ["vegetarian","gluten-free"]
+}
+,
+{
+"id": "83",
+"name": "Lentil Soup",
+"category": "Healthy",
+"origin": "Middle East",
+"description": "Lentil soup is a hearty and nutritious dish made with lentils and vegetables. It is high in protein and fiber. The soup is easy to digest and suitable for all ages. It is widely consumed for its health benefits.",
+"ingredients": ["lentils","carrots","onion","garlic","spices"],
+"preparation": "Cook lentils with vegetables and blend lightly.",
+"nutrition": "High protein, high fiber, low fat",
+"cultural_significance": "Traditional healthy comfort food",
+"dietary": ["vegetarian","vegan","gluten-free"]
+}
+,
+{
+"id": "84",
+"name": "Avocado Toast",
+"category": "Healthy",
+"origin": "Australia",
+"description": "Avocado toast is a simple healthy dish made by spreading mashed avocado on toasted bread. It is rich in healthy fats and fiber. It is popular for breakfast and brunch and can be topped with seeds or eggs.",
+"ingredients": ["bread","avocado","salt","pepper","olive oil"],
+"preparation": "Mash avocado and spread on toasted bread.",
+"nutrition": "Healthy fats, fiber rich",
+"cultural_significance": "Modern brunch favorite",
+"dietary": ["vegetarian"]
+}
+,
+{
+"id": "85",
+"name": "Grilled Salmon",
+"category": "Healthy",
+"origin": "Global",
+"description": "Grilled salmon is a nutritious seafood dish rich in omega three fatty acids. It is lightly seasoned and cooked on grill. The dish supports heart health and provides high protein.",
+"ingredients": ["salmon","salt","pepper","lemon","olive oil"],
+"preparation": "Season salmon and grill until cooked.",
+"nutrition": "High protein, omega-3 rich",
+"cultural_significance": "Popular healthy seafood dish",
+"dietary": ["non-vegetarian","gluten-free"]
+}
+,
+{
+"id": "86",
+"name": "Sushi",
+"category": "International",
+"origin": "Japan",
+"description": "Sushi is a Japanese dish made with vinegared rice and seafood or vegetables. It is served with soy sauce and wasabi. Sushi is known for fresh ingredients and artistic presentation.",
+"ingredients": ["rice","seaweed","fish","vegetables"],
+"preparation": "Roll rice with fillings in seaweed sheets.",
+"nutrition": "Low fat, moderate protein",
+"cultural_significance": "Traditional Japanese cuisine",
+"dietary": ["non-vegetarian"]
+}
+,
+{
+"id": "87",
+"name": "Tacos",
+"category": "International",
+"origin": "Mexico",
+"description": "Tacos are Mexican tortillas filled with meat, vegetables, and sauces. They are customizable and popular as street food. Tacos are enjoyed worldwide.",
+"ingredients": ["tortilla","meat","lettuce","cheese","salsa"],
+"preparation": "Fill tortilla with ingredients and serve.",
+"nutrition": "Moderate protein and carbs",
+"cultural_significance": "Popular Mexican street food",
+"dietary": ["non-vegetarian"]
+}
+,
+{
+"id": "88",
+"name": "Pad Thai",
+"category": "International",
+"origin": "Thailand",
+"description": "Pad Thai is a stir fried noodle dish made with rice noodles, vegetables, eggs, and peanuts. It has sweet and savory flavors and is one of Thailand's most famous dishes.",
+"ingredients": ["rice noodles","eggs","vegetables","peanuts","sauce"],
+"preparation": "Stir fry noodles with sauce and toppings.",
+"nutrition": "Balanced carbs and protein",
+"cultural_significance": "National dish of Thailand",
+"dietary": ["non-vegetarian"]
+}
+,
+{
+"id": "89",
+"name": "Margherita Pizza",
+"category": "International",
+"origin": "Italy",
+"description": "Margherita pizza is a classic Italian pizza topped with tomato sauce, mozzarella cheese, and basil. It is simple yet flavorful and represents Italian cuisine globally.",
+"ingredients": ["pizza dough","tomato sauce","mozzarella","basil"],
+"preparation": "Bake topped dough in hot oven.",
+"nutrition": "Carbohydrates and calcium",
+"cultural_significance": "Classic Italian dish",
+"dietary": ["vegetarian"]
+}
+,
+{
+"id": "90",
+"name": "Paella",
+"category": "International",
+"origin": "Spain",
+"description": "Paella is a Spanish rice dish cooked with seafood, vegetables, and spices. It is prepared in a wide pan and shared among people. It is colorful and flavorful.",
+"ingredients": ["rice","seafood","vegetables","saffron"],
+"preparation": "Cook rice with broth and toppings in wide pan.",
+"nutrition": "Balanced carbs and protein",
+"cultural_significance": "Traditional Spanish dish",
+"dietary": ["non-vegetarian","gluten-free"]
+}]
