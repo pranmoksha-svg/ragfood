@@ -27,7 +27,7 @@ with open("enhanced_food_data.json", "r", encoding="utf-8") as f:
     food_data = json.load(f)
 
 # ------------------- UPSERT (RUN ONCE) -------------------
-RESET = True  # ⚠️ Set True only once, then False
+RESET = False  # ⚠️ Set True only once, then False
 
 if RESET:
     print("🔄 Resetting index...")
@@ -99,7 +99,7 @@ def rag_query(question):
         include_data=True,
         include_metadata=True
     )
-
+    
     print("\n📦 Raw Results:", results)
 
     # 🧠 Step 2: Build context
@@ -121,10 +121,29 @@ Dietary: {', '.join(item.metadata.get('dietary_tags', []))}
     context = "\n\n".join(top_docs)
 
     print("\n📚 Context:\n", context)
+    
+    
+
+    filtered = []
+    
+    for item in results:
+        tags = [t.lower() for t in item.metadata.get("dietary_tags", [])]
+    
+        if "vegetarian" in question.lower():
+            if "vegetarian" not in tags and "vegan" not in tags:
+                continue
+    
+        filtered.append(item)
+
+    # fallback if empty
+    if filtered:
+       results = filtered[:3]
 
     # 🤖 Step 3: Prompt
     prompt = f"""
-Use the following context to answer the question clearly.
+Answer the question using ONLY relevant items from the context.
+
+Ignore any items that do not match the user's request.
 
 Context:
 {context}
@@ -132,19 +151,18 @@ Context:
 Question: {question}
 Answer:
 """
-
     # 🚀 Step 4: Generate answer
     return groq_generate_response(prompt)
 
 # ------------------- INTERACTIVE LOOP -------------------
 print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
+if __name__ == "__main__":
+  while True:
+      question = input("You: ")
 
-while True:
-    question = input("You: ")
+      if question.lower() in ["exit", "quit"]:
+          print("👋 Goodbye!")
+          break
 
-    if question.lower() in ["exit", "quit"]:
-        print("👋 Goodbye!")
-        break
-
-    answer = rag_query(question)
-    print("\n🤖:", answer, "\n")
+      answer = rag_query(question)
+      print("\n🤖:", answer, "\n")
