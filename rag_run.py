@@ -25,29 +25,36 @@ def get_embedding(text):
         "prompt": text
     })
     return response.json()["embedding"]
+def setup_db():
+  # Add only new items
+  existing_ids = set(collection.get()['ids'])
+  new_items = [item for item in food_data if item['id'] not in existing_ids]
 
-# Add only new items
-existing_ids = set(collection.get()['ids'])
-new_items = [item for item in food_data if item['id'] not in existing_ids]
+  if new_items:
+      print(f"🆕 Adding {len(new_items)} new documents to Chroma...")
+      for item in new_items:
+          # Enhance text with region/type
+          enriched_text = f"""
+Name: {item.get("name")}
+Category: {item.get("category")}
+Cuisine: {item.get("cultural_background")}
 
-if new_items:
-    print(f"🆕 Adding {len(new_items)} new documents to Chroma...")
-    for item in new_items:
-        # Enhance text with region/type
-        enriched_text = item["text"]
-        if "region" in item:
-            enriched_text += f" This food is popular in {item['region']}."
-        if "type" in item:
-            enriched_text += f" It is a type of {item['type']}."
+Description: {item.get("description")}
+Ingredients: {", ".join(item.get("ingredients", []))}
+"""
+          if "region" in item:
+              enriched_text += f" This food is popular in {item['region']}."
+          if "type" in item:
+              enriched_text += f" It is a type of {item['type']}."
 
-        emb = get_embedding(enriched_text)
+          emb = get_embedding(enriched_text)
 
-        collection.add(
-            documents=[item["text"]],  # Use original text as retrievable context
+          collection.add(
+            documents=[enriched_text],  # Use original text as retrievable context
             embeddings=[emb],
             ids=[item["id"]]
-        )
-else:
+          )
+  else:
     print("✅ All documents already in ChromaDB.")
 
 # RAG query
@@ -93,12 +100,17 @@ Answer:"""
     return response.json()["response"].strip()
 
 
-# Interactive loop
-print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
-while True:
-    question = input("You: ")
-    if question.lower() in ["exit", "quit"]:
-        print("👋 Goodbye!")
-        break
-    answer = rag_query(question)
-    print("🤖:", answer)
+if __name__ == "__main__":
+    setup_db()   # if you added it earlier
+
+    print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
+
+    while True:
+        question = input("You: ")
+
+        if question.lower() in ["exit", "quit"]:
+            print("👋 Goodbye!")
+            break
+
+        answer = rag_query(question)
+        print("🤖:", answer)
