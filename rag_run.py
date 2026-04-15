@@ -3,67 +3,70 @@ from upstash_vector import Index
 from dotenv import load_dotenv
 import json
 import requests
-import time
-from requests.exceptions import RequestException
 
 # Load environment variables
 load_dotenv()
 
-# Constants
+# ------------------- CONFIG -------------------
 UPSTASH_URL = os.getenv("UPSTASH_VECTOR_REST_URL")
 UPSTASH_TOKEN = os.getenv("UPSTASH_VECTOR_REST_TOKEN")
 
-# Setup Upstash Vector
+GROQ_API_URL = os.getenv("GROQ_API_URL")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+MODEL = "openai/gpt-oss-120b"
+
+# ------------------- SETUP -------------------
 index = Index(
-    url = UPSTASH_URL,
-    token = UPSTASH_TOKEN
+    url=UPSTASH_URL,
+    token=UPSTASH_TOKEN
 )
 
-# Load food data from JSON file
-with open("foods.json", "r", encoding="utf-8") as f:
+# ------------------- LOAD DATA -------------------
+with open("enhanced_food_data.json", "r", encoding="utf-8") as f:
     food_data = json.load(f)
 
-# Add only new items
-try:
-    response = index.query(data="", top_k=1000, include_data=True)
-except Exception as e:
-    print(f"Error querying Upstash Vector: {e}")
-    response = None
+# ------------------- UPSERT (RUN ONCE) -------------------
+RESET = True  # ⚠️ Set True only once, then False
 
-if not response or not hasattr(response, 'items'):
-    print("⚠️ Warning: The response from Upstash Vector is empty or malformed.")
-    existing_ids = set()  # Fallback to an empty set
-else:
-    existing_ids = set([item['id'] for item in response['items']])
-
-new_items = [item for item in food_data if item['id'] not in existing_ids]
-
-if new_items:
-    print(f"🆕 Adding {len(new_items)} new documents to Upstash...")
-    # DELETE OLD DATA (run once)
+if RESET:
+    print("🔄 Resetting index...")
     index.reset()
-    for item in new_items:
-        # Ensure 'text' exists before using it
-        if 'text' in item:
-            index.upsert([
-                {
-                "id": item["id"],
-                "data": item["text"]
+
+    to_upsert = []
+
+    for i, item in enumerate(food_data):
+
+        to_upsert.append({
+            "id": str(i + 1),
+
+            # ✅ Only description is vectorized
+            "data": item.get("description", ""),
+
+            # ✅ Everything else stored as metadata
+            "metadata": {
+                "name": item.get("name"),
+                "category": item.get("category"),
+                "ingredients": item.get("ingredients", []),
+                "cooking_method": item.get("cooking_method"),
+                "nutrition": item.get("nutritional_benefits"),
+                "cultural_background": item.get("cultural_background"),
+                "dietary_tags": item.get("dietary_tags", []),
+                "allergens": item.get("allergens", [])
             }
-            ])
-        else:
-            print(f"⚠️ Skipping item with ID {item['id']} as it lacks 'text'.")
+        })
+
+    index.upsert(to_upsert)
+    print(f"✅ Upserted {len(to_upsert)} documents")
+
 else:
-    print("✅ All documents already in Upstash Vector.")
+    print("⏩ Skipping upsert (already done)")
 
-# Replace Ollama calls with Groq API integration
-
+# ------------------- GROQ FUNCTION -------------------
 def groq_generate_response(prompt):
-    GROQ_API_URL = os.getenv("GROQ_API_URL")
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
     if not GROQ_API_URL or not GROQ_API_KEY:
-        raise ValueError("GROQ_API_URL and GROQ_API_KEY must be set in the environment variables.")
+        raise ValueError("Missing GROQ_API_URL or GROQ_API_KEY")
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -71,46 +74,77 @@ def groq_generate_response(prompt):
     }
 
     payload = {
-        "model": "openai/gpt-oss-120b",  # Specify the model explicitly
+        "model": MODEL,
         "messages": [
             {"role": "user", "content": prompt}
         ],
-        "max_tokens": 150,
-        "temperature": 0.7
+        "temperature": 0.7,
+        "max_tokens": 300
     }
 
-    retries = 3
-    for attempt in range(retries):
-        try:
-            response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
 
-            if response.status_code == 200:
-                return response.json()["choices"][0]["message"]["content"]
-            else:
-                print(f"Groq API call failed with status code {response.status_code}: {response.text}")
+    if response.status_code != 200:
+        raise Exception(response.text)
 
-        except RequestException as e:
-            print(f"Error during Groq API call: {e}")
+    return response.json()["choices"][0]["message"]["content"]
 
-        if attempt < retries - 1:
-            print("Retrying...")
-            time.sleep(2 ** attempt)  # Exponential backoff
-
-    raise Exception("Groq API call failed after multiple retries.")
-
-# Example usage of Groq API
+# ------------------- RAG QUERY -------------------
 def rag_query(question):
-    prompt = f"Answer the following question: {question}"
-    response = groq_generate_response(prompt)
-    print("Generated Response:", response)
-    return response
 
-# Interactive loop
+    # 🔍 Step 1: Retrieve relevant docs
+    results = index.query(
+        data=question,
+        top_k=3,
+        include_data=True,
+        include_metadata=True
+    )
+
+    print("\n📦 Raw Results:", results)
+
+    # 🧠 Step 2: Build context
+    top_docs = []
+
+    for item in results:
+        doc = f"""
+Name: {item.metadata.get('name')}
+Category: {item.metadata.get('category')}
+
+Description: {item.data}
+
+Ingredients: {', '.join(item.metadata.get('ingredients', []))}
+Nutrition: {item.metadata.get('nutrition')}
+Dietary: {', '.join(item.metadata.get('dietary_tags', []))}
+"""
+        top_docs.append(doc.strip())
+
+    context = "\n\n".join(top_docs)
+
+    print("\n📚 Context:\n", context)
+
+    # 🤖 Step 3: Prompt
+    prompt = f"""
+Use the following context to answer the question clearly.
+
+Context:
+{context}
+
+Question: {question}
+Answer:
+"""
+
+    # 🚀 Step 4: Generate answer
+    return groq_generate_response(prompt)
+
+# ------------------- INTERACTIVE LOOP -------------------
 print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
+
 while True:
     question = input("You: ")
+
     if question.lower() in ["exit", "quit"]:
         print("👋 Goodbye!")
         break
+
     answer = rag_query(question)
-    print("🤖:", answer)
+    print("\n🤖:", answer, "\n")
