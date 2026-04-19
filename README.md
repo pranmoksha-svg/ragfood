@@ -162,6 +162,7 @@ For this project, I improved a smart food assistant by adding 15 new dishes from
 - Cultural background  
 - Dietary information (Vegetarian, Vegan, Gluten-free)
 
+
 After updating the dataset, I tested the system with different types of questions. These included asking about specific dishes, searching for healthy foods, checking vegetarian options, and finding foods from particular regions.
 
 The assistant successfully retrieved the most relevant information from the updated data and generated clear responses based on that content.
