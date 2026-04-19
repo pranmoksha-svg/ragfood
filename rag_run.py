@@ -93,12 +93,77 @@ Answer:"""
     return response.json()["response"].strip()
 
 
-# Interactive loop
+    # 🔍 Step 1: Retrieve relevant docs
+    results = index.query(
+        data=question,
+        top_k=3,
+        include_data=True,
+        include_metadata=True
+    )
+    
+    print("\n📦 Raw Results:", results)
+
+    # 🧠 Step 2: Build context
+    top_docs = []
+
+    for item in results:
+        doc = f"""
+Name: {item.metadata.get('name')}
+Category: {item.metadata.get('category')}
+
+Description: {item.data}
+
+Ingredients: {', '.join(item.metadata.get('ingredients', []))}
+Nutrition: {item.metadata.get('nutrition')}
+Dietary: {', '.join(item.metadata.get('dietary_tags', []))}
+"""
+        top_docs.append(doc.strip())
+
+    context = "\n\n".join(top_docs)
+
+    print("\n📚 Context:\n", context)
+    
+    
+
+    filtered = []
+    
+    for item in results:
+        tags = [t.lower() for t in item.metadata.get("dietary_tags", [])]
+    
+        if "vegetarian" in question.lower():
+            if "vegetarian" not in tags and "vegan" not in tags:
+                continue
+    
+        filtered.append(item)
+
+    # fallback if empty
+    if filtered:
+       results = filtered[:3]
+
+    # 🤖 Step 3: Prompt
+    prompt = f"""
+Answer the question using ONLY relevant items from the context.
+
+Ignore any items that do not match the user's request.
+
+Context:
+{context}
+
+Question: {question}
+Answer:
+"""
+    # 🚀 Step 4: Generate answer
+    return groq_generate_response(prompt)
+
+# ------------------- INTERACTIVE LOOP -------------------
 print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
-while True:
-    question = input("You: ")
-    if question.lower() in ["exit", "quit"]:
-        print("👋 Goodbye!")
-        break
-    answer = rag_query(question)
-    print("🤖:", answer)
+if __name__ == "__main__":
+  while True:
+      question = input("You: ")
+
+      if question.lower() in ["exit", "quit"]:
+          print("👋 Goodbye!")
+          break
+
+      answer = rag_query(question)
+      print("\n🤖:", answer, "\n")
