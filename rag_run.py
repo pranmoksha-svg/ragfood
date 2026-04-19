@@ -1,97 +1,109 @@
 import os
+from upstash_vector import Index
+from dotenv import load_dotenv
 import json
-import chromadb
 import requests
+import time
+from requests.exceptions import RequestException
+
+# Load environment variables
+load_dotenv()
 
 # Constants
-CHROMA_DIR = "chroma_db"
-COLLECTION_NAME = "foods"
-JSON_FILE = "foods.json"
-EMBED_MODEL = "mxbai-embed-large"
-LLM_MODEL = "llama3.2"
+UPSTASH_URL = os.getenv("UPSTASH_VECTOR_REST_URL")
+UPSTASH_TOKEN = os.getenv("UPSTASH_VECTOR_REST_TOKEN")
 
-# Load data
-with open(JSON_FILE, "r", encoding="utf-8") as f:
+# Setup Upstash Vector
+index = Index(
+    url = UPSTASH_URL,
+    token = UPSTASH_TOKEN
+)
+
+# Load food data from JSON file
+with open("foods.json", "r", encoding="utf-8") as f:
     food_data = json.load(f)
 
-# Setup ChromaDB
-chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
-collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
-
-# Ollama embedding function
-def get_embedding(text):
-    response = requests.post("http://localhost:11434/api/embeddings", json={
-        "model": EMBED_MODEL,
-        "prompt": text
-    })
-    return response.json()["embedding"]
-
 # Add only new items
-existing_ids = set(collection.get()['ids'])
+try:
+    response = index.query(data="", top_k=1000, include_data=True)
+except Exception as e:
+    print(f"Error querying Upstash Vector: {e}")
+    response = None
+
+if not response or not hasattr(response, 'items'):
+    print("⚠️ Warning: The response from Upstash Vector is empty or malformed.")
+    existing_ids = set()  # Fallback to an empty set
+else:
+    existing_ids = set([item['id'] for item in response['items']])
+
 new_items = [item for item in food_data if item['id'] not in existing_ids]
 
 if new_items:
-    print(f"🆕 Adding {len(new_items)} new documents to Chroma...")
+    print(f"🆕 Adding {len(new_items)} new documents to Upstash...")
+    # DELETE OLD DATA (run once)
+    index.reset()
     for item in new_items:
-        # Enhance text with region/type
-        enriched_text = item["text"]
-        if "region" in item:
-            enriched_text += f" This food is popular in {item['region']}."
-        if "type" in item:
-            enriched_text += f" It is a type of {item['type']}."
-
-        emb = get_embedding(enriched_text)
-
-        collection.add(
-            documents=[item["text"]],  # Use original text as retrievable context
-            embeddings=[emb],
-            ids=[item["id"]]
-        )
+        # Ensure 'text' exists before using it
+        if 'text' in item:
+            index.upsert([
+                {
+                "id": item["id"],
+                "data": item["text"]
+            }
+            ])
+        else:
+            print(f"⚠️ Skipping item with ID {item['id']} as it lacks 'text'.")
 else:
-    print("✅ All documents already in ChromaDB.")
+    print("✅ All documents already in Upstash Vector.")
 
-# RAG query
+# Replace Ollama calls with Groq API integration
+
+def groq_generate_response(prompt):
+    GROQ_API_URL = os.getenv("GROQ_API_URL")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+    if not GROQ_API_URL or not GROQ_API_KEY:
+        raise ValueError("GROQ_API_URL and GROQ_API_KEY must be set in the environment variables.")
+
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "openai/gpt-oss-120b",  # Specify the model explicitly
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": 150,
+        "temperature": 0.7
+    }
+
+    retries = 3
+    for attempt in range(retries):
+        try:
+            response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+
+            if response.status_code == 200:
+                return response.json()["choices"][0]["message"]["content"]
+            else:
+                print(f"Groq API call failed with status code {response.status_code}: {response.text}")
+
+        except RequestException as e:
+            print(f"Error during Groq API call: {e}")
+
+        if attempt < retries - 1:
+            print("Retrying...")
+            time.sleep(2 ** attempt)  # Exponential backoff
+
+    raise Exception("Groq API call failed after multiple retries.")
+
+# Example usage of Groq API
 def rag_query(question):
-    # Step 1: Embed the user question
-    q_emb = get_embedding(question)
-
-    # Step 2: Query the vector DB
-    results = collection.query(query_embeddings=[q_emb], n_results=3)
-
-    # Step 3: Extract documents
-    top_docs = results['documents'][0]
-    top_ids = results['ids'][0]
-
-    # Step 4: Show friendly explanation of retrieved documents
-    print("\n🧠 Retrieving relevant information to reason through your question...\n")
-
-    for i, doc in enumerate(top_docs):
-        print(f"🔹 Source {i + 1} (ID: {top_ids[i]}):")
-        print(f"    \"{doc}\"\n")
-
-    print("📚 These seem to be the most relevant pieces of information to answer your question.\n")
-
-    # Step 5: Build prompt from context
-    context = "\n".join(top_docs)
-
-    prompt = f"""Use the following context to answer the question.
-
-Context:
-{context}
-
-Question: {question}
-Answer:"""
-
-    # Step 6: Generate answer with Ollama
-    response = requests.post("http://localhost:11434/api/generate", json={
-        "model": LLM_MODEL,
-        "prompt": prompt,
-        "stream": False
-    })
-
-    # Step 7: Return final result
-    return response.json()["response"].strip()
-
+    prompt = f"Answer the following question: {question}"
+    response = groq_generate_response(prompt)
+    print("Generated Response:", response)
+    return response
 
 # Interactive loop
 print("\n🧠 RAG is ready. Ask a question (type 'exit' to quit):\n")
