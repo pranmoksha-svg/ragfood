@@ -4,7 +4,8 @@ Here’s a clear, beginner-friendly `README.md` for your RAG project, designed t
 
 ## 📄 `README.md`
 
-````markdown
+### LOCAL VERSION
+
 # 🧠 RAG-Food: Simple Retrieval-Augmented Generation with ChromaDB + Ollama
 
 This is a **minimal working RAG (Retrieval-Augmented Generation)** demo using:
@@ -77,10 +78,15 @@ pip install chromadb requests
 ```
 
 ### 3. Run the RAG app
-
 ```bash
 python rag_run.py
 ```
+
+### 4. Run the Tests
+```bash
+python test.py
+```
+
 
 If it's the first time, it will:
 
@@ -150,7 +156,49 @@ Made by Callum using:
 **PRANAY GOUD YERRA**
 
 ---
-
+# Architecture Diagram - Local
+                ┌────────────────────┐
+                │   User Question    │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │  Embedding Model   │
+                │  (Ollama API)      │
+                │ mxbai-embed-large  │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │    ChromaDB        │
+                │  (Vector Storage)  │
+                └─────────┬──────────┘
+                          │
+              Similarity Search (Top-K)
+                          │
+                          ▼
+                ┌────────────────────┐
+                │ Retrieved Context  │
+                │ (Top Documents)    │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │   Prompt Builder   │
+                │ (Context + Query)  │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │     LLM Model      │
+                │   (Ollama API)     │
+                │    llama3.2        │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │   Final Answer     │
+                └────────────────────┘
 # Project Customisation Overview
 
 For this project, I improved a smart food assistant by adding 15 new dishes from different cultures along with several healthy options. The goal was to expand the system’s knowledge so it can better understand user questions and provide more relevant answers. Each food item I added includes:
@@ -338,3 +386,279 @@ Which foods can be grilled?
 # RAG Learning Reflection
 
 For this project, I worked on improving a smart food assistant that can search and explain food-related information more effectively. My main task was to expand the dataset by adding 15 new meals from different cultures, along with several healthy food options. This helped the system understand a wider variety of user queries. By expanding the dataset, I improved how the system retrieves relevant information. Instead of depending only on exact keyword matches, the assistant can now identify results based on semantic meaning. This makes the responses more accurate and useful for users asking different types of questions. Through this process, I learned how structured data directly affects the quality of answers. Organising each food item with detailed fields such as ingredients, nutritional value, preparation method, and dietary classification helped the system return more precise and meaningful results. I also tested the assistant using different types of queries, including dietary restrictions, cultural cuisines, and healthy meal options. These tests confirmed that the retrieval process was working correctly and that the improvements were effective. Additionally, I practiced version control by forking the repository, making updates, committing changes, and pushing them to my own GitHub repository. This helped me better understand how to maintain a clean and traceable project history while working on a real project. Overall, this project gave me hands-on experience in improving a data-driven information retrieval system, testing and validating functional improvements, and documenting results in a structured and professional way.
+
+
+
+### CLOUD VERSION
+# Cloud Migration Overview with architecture diagrams
+# ☁️ Cloud Migration Overview
+
+This project was migrated from a **local Retrieval-Augmented Generation (RAG) system** to a **cloud-based architecture** to improve scalability, performance, and reliability.
+
+---
+
+## 🔄 Migration Summary
+
+| Component | Before (Local) | After (Cloud) |
+|----------|---------------|--------------|
+| Vector DB | ChromaDB (local) | Upstash Vector (serverless) |
+| Embeddings | Ollama (local) | Upstash-managed |
+| LLM | Ollama (local) | Groq API |
+| Storage | Local JSON | Cloud-based |
+| Scaling | Limited | Serverless auto-scale |
+
+### 🟢 After: Cloud RAG Architecture
+
+            ┌────────────────────┐
+            │   User Question    │
+            └─────────┬──────────┘
+                      │
+                      ▼
+            ┌────────────────────┐
+            │   Upstash Vector   │
+            │ (Vector Database)  │
+            └─────────┬──────────┘
+                      │
+          Similarity Search (Top-K)
+                      │
+                      ▼
+            ┌────────────────────┐
+            │ Retrieved Context  │
+            │ (Top Documents)    │
+            └─────────┬──────────┘
+                      │
+                      ▼
+            ┌────────────────────┐
+            │   Prompt Builder   │
+            │ (Context + Query)  │
+            └─────────┬──────────┘
+                      │
+                      ▼
+            ┌────────────────────┐
+            │     LLM Model      │
+            │     (Groq API)     │
+            │  gpt-oss-120b      │
+            └─────────┬──────────┘
+                      │
+                      ▼
+            ┌────────────────────┐
+            │   Final Answer     │
+            └────────────────────┘
+
+**Flow:**
+1. User sends query  
+2. Query processed by Upstash Vector  
+3. Relevant documents retrieved  
+4. Context sent to Groq LLM API  
+5. LLM generates response  
+6. Answer returned to user  
+
+---
+
+## ⚙️ Key Components
+
+### 🧠 Upstash Vector
+- Serverless vector database  
+- Stores embeddings  
+- Fast similarity search  
+- No infrastructure management  
+
+### 🤖 Groq API
+- High-speed LLM inference  
+- Generates responses  
+- Replaces local models  
+
+### 📦 Dataset (JSON)
+- Stores food knowledge  
+- Used as RAG knowledge base  
+- Uploaded to vector database  
+
+---
+# Setup instructions for Cloud versions
+Follow these steps to run the **Cloud-based RAG system** using Upstash Vector and Groq API.
+
+---
+
+## 📋 Prerequisites
+
+Make sure you have:
+
+- Python 3.8+
+- Internet connection
+- A code editor (VS Code recommended)
+
+---
+
+## 📦 1. Install Dependencies
+
+```bash
+pip install upstash-vector python-dotenv requests
+```
+
+# Environment variables configuration guide
+
+```bash
+export UPSTASH_VECTOR_REST_URL=your_upstash_url
+export UPSTASH_VECTOR_REST_TOKEN=your_upstash_token
+export GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+export GROQ_API_KEY=your_groq_api_key
+```
+
+# Comparison table: Local vs Cloud 
+
+## 🔢 Results Table
+
+| Test Name              | LLM Local Score | Local Response Time (s) | LLM Cloud Score | Cloud Response Time (s) |
+|-----------------------|------------|--------------------------|-------------|--------------------------|
+| Semantic Similarity   | 0          | 32.96                    | 7           | 1.99                     |
+| Multi-Criteria        | 0          | 19.48                    | 6           | 1.42                     |
+| Nutritional           | 0          | 32.44                    | 6           | 1.07                     |
+| Cultural Exploration  | 0          | 17.60                    | 6           | 1.26                     |
+| Cooking Method        | 0          | 15.69                    | 7           | 1.09                     |
+
+---
+
+## 🧠 What is LLM Score?
+
+The **LLM Score** is an evaluation metric generated by a Large Language Model (Groq API in this project) to assess the quality of responses.
+
+Each answer is scored from **1 to 10** based on:
+
+### 📌 Evaluation Criteria
+- **Relevance** → Does the answer match the question?
+- **Accuracy** → Is the information correct?
+- **Completeness** → Does it fully answer the question?
+
+---
+
+## 📏 LLM Performance Metrics
+
+| Score Range | Interpretation |
+|------------|---------------|
+| 0–2        | Poor / irrelevant answer |
+| 3–5        | Partially correct but incomplete |
+| 6–8        | Good and relevant answer |
+| 9–10       | Excellent, detailed, and accurate |
+
+---
+
+## 📊 Overall Performance Summary
+
+| Metric                     | Local RAG | Cloud RAG |
+|--------------------------|----------|----------|
+| Average Score            | 0.0      | 6.4      |
+| Average Response Time (s)| 23.63    | 1.37     |
+
+---
+
+## 🔍 Analysis of Results
+
+### 🔴 Local RAG
+- Scored **0 across all tests**, indicating:
+  - Failure to retrieve relevant documents
+  - Poor or empty responses
+- Extremely **high response times (15–33 seconds)**
+- Likely issues:
+  - Inefficient local embedding and retrieval
+  - Weak context generation
+  - Slow model inference (Ollama)
+
+---
+
+### 🟢 Cloud RAG
+- Consistent scores between **6–7**, indicating:
+  - Relevant and mostly accurate answers
+  - Good contextual understanding
+- **Fast response times (~1 second)**
+- Strong performance due to:
+  - Upstash Vector (fast retrieval)
+  - Groq API (high-speed LLM inference)
+
+---
+
+## ⚖️ Key Observations
+
+- ⚡ Cloud RAG is **~17x faster** than Local RAG  
+- 🧠 Cloud RAG produces **meaningful and usable answers**  
+- ❌ Local RAG fails in both **accuracy and efficiency**  
+- 📈 Cloud architecture significantly improves **scalability and reliability**
+
+---
+
+## 🏁 Conclusion
+
+The evaluation clearly shows that the **cloud-based RAG system outperforms the local implementation** in both response quality and speed.
+
+- The **Local RAG system is not suitable for production**, due to:
+  - High latency
+  - Poor answer quality
+
+- The **Cloud RAG system is production-ready**, offering:
+  - Fast response times
+  - Reliable and relevant answers
+  - Scalable architecture
+
+This demonstrates that leveraging **cloud-based vector databases and optimized LLM APIs** is essential for building effective RAG systems.
+
+---
+
+## 🚀 Final Insight
+
+> Cloud RAG transforms the system from a slow, unreliable prototype into a fast, accurate, and scalable AI solution.
+
+# Enhanced food database showcase 
+[Enhanced Food Data Here](enhansed_food_data.md)
+# Troubleshooting guide for common cloud setup issues
+# 🛠️ Troubleshooting Guide (Cloud RAG System)
+
+This guide provides solutions to common issues encountered while setting up and running the **Cloud-based RAG system** using **Upstash Vector** and **Groq API**.
+
+---
+
+## 🔐 1. Environment Variables Issues
+
+### 🔍 Error:
+ValueError: GROQ_API_URL or GROQ_API_KEY missing
+
+### ✅ Solution:
+- Ensure `.env` file exists in the root directory
+- Verify correct variable names:
+
+```env
+UPSTASH_VECTOR_REST_URL=your_url
+UPSTASH_VECTOR_REST_TOKEN=your_token
+GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+GROQ_API_KEY=your_api_key
+```
+- Load variables in code:
+```
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+```
+- Restart terminal after editing .env
+
+## 🔐 2. Upstash Connection Errors
+
+### 🔍 Error:
+Error querying Upstash Vector
+
+### ✅ Solution:
+Check REST URL and TOKEN are correct
+Ensure internet connection
+Verify Upstash database is active
+
+## ⏱️ 3. Slow Response Time
+### 🔍 Issue:
+
+Responses are slow
+
+### ✅ Solution:
+Reduce retrieval size:
+top_k = 3
+Reduce max_tokens
+Check network speed
+
+# Advanced query examples and expected responses
+[Queries And Responses Here](queriesAndResponses.md)
