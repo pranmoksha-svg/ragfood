@@ -4,7 +4,8 @@ Here’s a clear, beginner-friendly `README.md` for your RAG project, designed t
 
 ## 📄 `README.md`
 
-````markdown
+### LOCAL VERSION
+
 # 🧠 RAG-Food: Simple Retrieval-Augmented Generation with ChromaDB + Ollama
 
 This is a **minimal working RAG (Retrieval-Augmented Generation)** demo using:
@@ -77,10 +78,15 @@ pip install chromadb requests
 ```
 
 ### 3. Run the RAG app
-
 ```bash
 python rag_run.py
 ```
+
+### 4. Run the Tests
+```bash
+python test.py
+```
+
 
 If it's the first time, it will:
 
@@ -150,7 +156,49 @@ Made by Callum using:
 **PRANAY GOUD YERRA**
 
 ---
-
+# Architecture Diagram - Local
+                ┌────────────────────┐
+                │   User Question    │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │  Embedding Model   │
+                │  (Ollama API)      │
+                │ mxbai-embed-large  │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │    ChromaDB        │
+                │  (Vector Storage)  │
+                └─────────┬──────────┘
+                          │
+              Similarity Search (Top-K)
+                          │
+                          ▼
+                ┌────────────────────┐
+                │ Retrieved Context  │
+                │ (Top Documents)    │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │   Prompt Builder   │
+                │ (Context + Query)  │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │     LLM Model      │
+                │   (Ollama API)     │
+                │    llama3.2        │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │   Final Answer     │
+                └────────────────────┘
 # Project Customisation Overview
 
 For this project, I improved a smart food assistant by adding 15 new dishes from different cultures along with several healthy options. The goal was to expand the system’s knowledge so it can better understand user questions and provide more relevant answers. Each food item I added includes:
@@ -338,3 +386,15 @@ Which foods can be grilled?
 # RAG Learning Reflection
 
 For this project, I worked on improving a smart food assistant that can search and explain food-related information more effectively. My main task was to expand the dataset by adding 15 new meals from different cultures, along with several healthy food options. This helped the system understand a wider variety of user queries. By expanding the dataset, I improved how the system retrieves relevant information. Instead of depending only on exact keyword matches, the assistant can now identify results based on semantic meaning. This makes the responses more accurate and useful for users asking different types of questions. Through this process, I learned how structured data directly affects the quality of answers. Organising each food item with detailed fields such as ingredients, nutritional value, preparation method, and dietary classification helped the system return more precise and meaningful results. I also tested the assistant using different types of queries, including dietary restrictions, cultural cuisines, and healthy meal options. These tests confirmed that the retrieval process was working correctly and that the improvements were effective. Additionally, I practiced version control by forking the repository, making updates, committing changes, and pushing them to my own GitHub repository. This helped me better understand how to maintain a clean and traceable project history while working on a real project. Overall, this project gave me hands-on experience in improving a data-driven information retrieval system, testing and validating functional improvements, and documenting results in a structured and professional way.
+
+
+
+### CLOUD VERSION
+# Cloud Migration Overview with architecture diagrams
+# Setup instructions for Cloud versions
+# Environment variables configuration guide
+# Comparison table: Local vs Cloud 
+# Enhanced food database showcase 
+# Troubleshooting guide for common cloud setup issues
+# Advanced query examples and expected responses
+![System Running](queriesAndResponses.md)
