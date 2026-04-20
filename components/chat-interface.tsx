@@ -4,9 +4,12 @@ import { useRef, useState, useTransition } from "react";
 import {
   AlertCircle,
   BookOpen,
+  Check,
   ChevronDown,
+  Copy,
   Cpu,
   Send,
+  Share2,
   Sparkles,
   Trash2,
   User,
@@ -29,10 +32,21 @@ type Exchange = {
 };
 
 const SUGGESTIONS = [
-  "What vegetarian dishes are low-carb?",
-  "Suggest a spicy Asian dish with tofu.",
-  "Which dishes are high in fiber?",
-  "Show me a Mediterranean dish with olive oil.",
+  "What is a healthy dinner option?",
+  "Suggest comfort foods for a cold day",
+  "Low-calorie meals under 300 calories",
+  "High-protein vegetarian dishes",
+  "What Indian dishes are spicy?",
+  "Mediterranean diet recommendations",
+];
+
+const QUICK_SUGGESTIONS = [
+  "Healthy meals",
+  "High protein",
+  "Vegetarian",
+  "Indian cuisine",
+  "Low calorie",
+  "Comfort food",
 ];
 
 export function ChatInterface() {
@@ -141,6 +155,24 @@ export function ChatInterface() {
         onSubmit={handleSubmit}
         className="sticky bottom-4 z-10 mt-2 flex flex-col gap-2"
       >
+        {/* Quick suggestion chips */}
+        <div className="flex flex-wrap items-center gap-1.5 px-2">
+          {QUICK_SUGGESTIONS.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => setQuestion(suggestion)}
+              disabled={isPending}
+              className={cn(
+                "rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors",
+                "hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center justify-between gap-2 px-2">
           <ModelPicker
             value={model}
@@ -242,6 +274,34 @@ function AnswerBlock({
   answer: string;
   sources: SourceDoc[];
 }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    const shareText = `${answer}\n\n— Powered by Foodie RAG`;
+
+    // Try Web Share API first (mobile-friendly)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Foodie RAG Answer",
+          text: shareText,
+        });
+        return;
+      } catch {
+        // User cancelled or share failed, fall back to clipboard
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.log("[v0] Failed to copy to clipboard");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
@@ -251,8 +311,34 @@ function AnswerBlock({
         >
           <Sparkles className="h-4 w-4" />
         </div>
-        <div className="rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 text-sm leading-relaxed text-foreground shadow-sm">
+        <div className="group relative rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 text-sm leading-relaxed text-foreground shadow-sm">
           <p className="whitespace-pre-wrap text-pretty">{answer}</p>
+          
+          {/* Share button */}
+          <button
+            type="button"
+            onClick={handleShare}
+            className={cn(
+              "absolute -bottom-3 right-2 inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-[10px] font-medium shadow-sm transition-all",
+              copied
+                ? "border-primary/50 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+              "opacity-0 group-hover:opacity-100 focus:opacity-100",
+            )}
+            aria-label={copied ? "Copied!" : "Share this answer"}
+          >
+            {copied ? (
+              <>
+                <Check className="h-3 w-3" aria-hidden="true" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Share2 className="h-3 w-3" aria-hidden="true" />
+                Share
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -330,25 +416,34 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
       </div>
       <div className="max-w-md space-y-2">
         <h2 className="font-serif text-2xl font-semibold text-balance text-foreground">
-          {"Ask Foodie anything about food"}
+          Ask Foodie anything about food
         </h2>
         <p className="text-pretty text-sm text-muted-foreground">
-          {
-            "Retrieval-augmented answers grounded in a curated dish knowledge base. Try a suggestion below or type your own question."
-          }
+          Retrieval-augmented answers grounded in a curated dish knowledge base.
+          Try an example below or type your own question.
         </p>
       </div>
-      <div className="flex flex-wrap justify-center gap-2">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => onPick(s)}
-            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs text-foreground/80 shadow-sm transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground"
-          >
-            {s}
-          </button>
-        ))}
+
+      {/* Example Queries Section */}
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Example Queries
+        </h3>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onPick(s)}
+              className={cn(
+                "rounded-xl border border-border bg-background px-3 py-2.5 text-left text-sm text-foreground/80 shadow-sm transition-colors",
+                "hover:border-primary/60 hover:bg-primary/5 hover:text-foreground",
+              )}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
