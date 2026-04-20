@@ -5,8 +5,8 @@ export const MODEL_OPTIONS = [
     description: "Fastest · great for quick answers",
   },
   {
-    id: "llama-3.1-70b-versatile",
-    label: "Llama 3.1 70B Versatile",
+    id: "llama-3.3-70b-versatile",
+    label: "Llama 3.3 70B Versatile",
     description: "Highest quality · slower, more detailed",
   },
 ] as const;
