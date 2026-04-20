@@ -8,6 +8,7 @@ import {
   Cpu,
   Send,
   Sparkles,
+  Trash2,
   User,
 } from "lucide-react";
 
@@ -78,6 +79,13 @@ export function ChatInterface() {
     submit(question);
   }
 
+  function clearChat() {
+    if (isPending) return;
+    setExchanges([]);
+    setQuestion("");
+    inputRef.current?.focus();
+  }
+
   const isEmpty = exchanges.length === 0;
 
   return (
@@ -106,15 +114,33 @@ export function ChatInterface() {
         onSubmit={handleSubmit}
         className="sticky bottom-4 z-10 mt-2 flex flex-col gap-2"
       >
-        <div className="flex items-center justify-between px-2">
+        <div className="flex items-center justify-between gap-2 px-2">
           <ModelPicker
             value={model}
             onChange={setModel}
             disabled={isPending}
           />
-          <span className="text-[11px] text-muted-foreground">
-            Powered by Groq
-          </span>
+          <div className="flex items-center gap-3">
+            {exchanges.length > 0 ? (
+              <button
+                type="button"
+                onClick={clearChat}
+                disabled={isPending}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground/80 shadow-sm transition-colors",
+                  "hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+                aria-label="Clear chat history"
+              >
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Clear chat
+              </button>
+            ) : null}
+            <span className="text-[11px] text-muted-foreground">
+              Powered by Groq
+            </span>
+          </div>
         </div>
         <div
           className={cn(
