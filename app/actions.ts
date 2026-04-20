@@ -3,7 +3,22 @@
 import { Index } from "@upstash/vector";
 import Groq from "groq-sdk";
 
-const MODEL = "llama-3.1-8b-instant";
+export const MODEL_OPTIONS = [
+  {
+    id: "llama-3.1-8b-instant",
+    label: "Llama 3.1 8B Instant",
+    description: "Fastest · great for quick answers",
+  },
+  {
+    id: "llama-3.1-70b-versatile",
+    label: "Llama 3.1 70B Versatile",
+    description: "Highest quality · slower, more detailed",
+  },
+] as const;
+
+export type ModelId = (typeof MODEL_OPTIONS)[number]["id"];
+const DEFAULT_MODEL: ModelId = "llama-3.1-8b-instant";
+const VALID_MODEL_IDS = new Set<string>(MODEL_OPTIONS.map((m) => m.id));
 
 export type FoodMetadata = {
   name?: string;
@@ -90,7 +105,10 @@ function filterByDietary(docs: SourceDoc[], question: string): SourceDoc[] {
   return filtered.length > 0 ? filtered.slice(0, 3) : docs;
 }
 
-export async function askFoodieRag(question: string): Promise<RagResult> {
+export async function askFoodieRag(
+  question: string,
+  model?: string,
+): Promise<RagResult> {
   const trimmed = question.trim();
   if (!trimmed) {
     return { ok: false, error: "Please enter a question." };
@@ -101,6 +119,10 @@ export async function askFoodieRag(question: string): Promise<RagResult> {
       error: "Question is too long. Please keep it under 500 characters.",
     };
   }
+
+  // Validate model against allowlist; fall back to default if unknown.
+  const selectedModel: ModelId =
+    model && VALID_MODEL_IDS.has(model) ? (model as ModelId) : DEFAULT_MODEL;
 
   try {
     const index = getVectorIndex();
@@ -148,7 +170,7 @@ Answer:`;
 
     // 4. Generate with Groq
     const completion = await groq.chat.completions.create({
-      model: MODEL,
+      model: selectedModel,
       temperature: 0.7,
       max_tokens: 500,
       messages: [

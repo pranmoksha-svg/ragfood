@@ -1,9 +1,22 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { AlertCircle, BookOpen, Send, Sparkles, User } from "lucide-react";
+import {
+  AlertCircle,
+  BookOpen,
+  ChevronDown,
+  Cpu,
+  Send,
+  Sparkles,
+  User,
+} from "lucide-react";
 
-import { askFoodieRag, type SourceDoc } from "@/app/actions";
+import {
+  askFoodieRag,
+  MODEL_OPTIONS,
+  type ModelId,
+  type SourceDoc,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SourceCard } from "@/components/source-card";
@@ -27,6 +40,7 @@ const SUGGESTIONS = [
 
 export function ChatInterface() {
   const [question, setQuestion] = useState("");
+  const [model, setModel] = useState<ModelId>(MODEL_OPTIONS[0].id);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,8 +56,9 @@ export function ChatInterface() {
     ]);
     setQuestion("");
 
+    const selectedModel = model;
     startTransition(async () => {
-      const result = await askFoodieRag(trimmed);
+      const result = await askFoodieRag(trimmed, selectedModel);
       setExchanges((prev) =>
         prev.map((ex) =>
           ex.id === id
@@ -95,6 +110,16 @@ export function ChatInterface() {
         onSubmit={handleSubmit}
         className="sticky bottom-4 z-10 mt-2 flex flex-col gap-2"
       >
+        <div className="flex items-center justify-between px-2">
+          <ModelPicker
+            value={model}
+            onChange={setModel}
+            disabled={isPending}
+          />
+          <span className="text-[11px] text-muted-foreground">
+            Powered by Groq
+          </span>
+        </div>
         <div
           className={cn(
             "flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-lg shadow-foreground/5 transition-colors focus-within:border-primary/60",
@@ -217,6 +242,49 @@ function AnswerBlock({
         </section>
       ) : null}
     </div>
+  );
+}
+
+function ModelPicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ModelId;
+  onChange: (id: ModelId) => void;
+  disabled?: boolean;
+}) {
+  const selected = MODEL_OPTIONS.find((m) => m.id === value) ?? MODEL_OPTIONS[0];
+
+  return (
+    <label
+      className={cn(
+        "group relative inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-3 pr-2 text-xs font-medium text-foreground shadow-sm transition-colors",
+        "hover:border-primary/60",
+        disabled && "opacity-60",
+      )}
+    >
+      <Cpu className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+      <span className="sr-only">Model</span>
+      <span aria-hidden="true">{selected.label}</span>
+      <ChevronDown
+        className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:text-foreground"
+        aria-hidden="true"
+      />
+      <select
+        aria-label="Select model"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value as ModelId)}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {MODEL_OPTIONS.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.label} — {m.description}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
