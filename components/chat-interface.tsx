@@ -11,12 +11,8 @@ import {
   User,
 } from "lucide-react";
 
-import {
-  askFoodieRag,
-  MODEL_OPTIONS,
-  type ModelId,
-  type SourceDoc,
-} from "@/app/actions";
+import { askFoodieRag, type SourceDoc } from "@/app/actions";
+import { MODEL_OPTIONS, type ModelId } from "@/lib/models";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SourceCard } from "@/components/source-card";

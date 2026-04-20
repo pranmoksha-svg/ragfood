@@ -3,22 +3,7 @@
 import { Index } from "@upstash/vector";
 import Groq from "groq-sdk";
 
-export const MODEL_OPTIONS = [
-  {
-    id: "llama-3.1-8b-instant",
-    label: "Llama 3.1 8B Instant",
-    description: "Fastest · great for quick answers",
-  },
-  {
-    id: "llama-3.1-70b-versatile",
-    label: "Llama 3.1 70B Versatile",
-    description: "Highest quality · slower, more detailed",
-  },
-] as const;
-
-export type ModelId = (typeof MODEL_OPTIONS)[number]["id"];
-const DEFAULT_MODEL: ModelId = "llama-3.1-8b-instant";
-const VALID_MODEL_IDS = new Set<string>(MODEL_OPTIONS.map((m) => m.id));
+import { DEFAULT_MODEL, VALID_MODEL_IDS, type ModelId } from "@/lib/models";
 
 export type FoodMetadata = {
   name?: string;
