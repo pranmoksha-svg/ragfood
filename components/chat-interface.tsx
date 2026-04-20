@@ -93,21 +93,48 @@ export function ChatInterface() {
       {isEmpty ? (
         <EmptyState onPick={(q) => submit(q)} />
       ) : (
-        <ol className="flex flex-col gap-8" aria-live="polite">
-          {exchanges.map((ex) => (
-            <li key={ex.id} className="flex flex-col gap-4">
-              <UserMessage text={ex.question} />
+        <>
+          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+            <div className="flex items-baseline gap-2">
+              <h2 className="font-serif text-lg font-semibold text-foreground">
+                Conversation
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {exchanges.length}{" "}
+                {exchanges.length === 1 ? "message" : "messages"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={clearChat}
+              disabled={isPending}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition-colors",
+                "hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
+              aria-label="Clear chat history"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              Clear chat
+            </button>
+          </div>
+          <ol className="flex flex-col gap-8" aria-live="polite">
+            {exchanges.map((ex) => (
+              <li key={ex.id} className="flex flex-col gap-4">
+                <UserMessage text={ex.question} />
 
-              {ex.loading ? <LoadingAnswer /> : null}
+                {ex.loading ? <LoadingAnswer /> : null}
 
-              {ex.error ? <ErrorMessage message={ex.error} /> : null}
+                {ex.error ? <ErrorMessage message={ex.error} /> : null}
 
-              {ex.answer ? (
-                <AnswerBlock answer={ex.answer} sources={ex.sources ?? []} />
-              ) : null}
-            </li>
-          ))}
-        </ol>
+                {ex.answer ? (
+                  <AnswerBlock answer={ex.answer} sources={ex.sources ?? []} />
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </>
       )}
 
       <form
@@ -120,27 +147,9 @@ export function ChatInterface() {
             onChange={setModel}
             disabled={isPending}
           />
-          <div className="flex items-center gap-3">
-            {exchanges.length > 0 ? (
-              <button
-                type="button"
-                onClick={clearChat}
-                disabled={isPending}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground/80 shadow-sm transition-colors",
-                  "hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-                aria-label="Clear chat history"
-              >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                Clear chat
-              </button>
-            ) : null}
-            <span className="text-[11px] text-muted-foreground">
-              Powered by Groq
-            </span>
-          </div>
+          <span className="text-[11px] text-muted-foreground">
+            Powered by Groq
+          </span>
         </div>
         <div
           className={cn(
