@@ -494,31 +494,47 @@ function AnswerBlock({
   sources: SourceDoc[];
 }) {
   const [copied, setCopied] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
-  async function handleShare() {
-    const shareText = `${answer}\n\n— Powered by Foodie RAG`;
+  const shareText = `${answer}\n\n— Powered by Food AI`;
+  const appUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-    // Try Web Share API first (mobile-friendly)
+  async function handleNativeShare() {
+    // Try Web Share API (mobile-friendly)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Foodie RAG Answer",
+          title: "Food AI Result",
           text: shareText,
+          url: appUrl,
         });
+        setShowShareMenu(false);
         return;
       } catch {
         // User cancelled or share failed, fall back to clipboard
       }
     }
-
     // Fallback to clipboard
+    await handleCopy();
+  }
+
+  async function handleCopy() {
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => {
+        setCopied(false);
+        setShowShareMenu(false);
+      }, 2000);
     } catch {
-      console.log("[v0] Failed to copy to clipboard");
+      // Clipboard unavailable
     }
+  }
+
+  function handleWhatsAppShare() {
+    const encodedMessage = encodeURIComponent(`${shareText}\n\n${appUrl}`);
+    window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
+    setShowShareMenu(false);
   }
 
   return (
@@ -533,31 +549,75 @@ function AnswerBlock({
         <div className="group relative rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 text-sm leading-relaxed text-foreground shadow-sm">
           <p className="whitespace-pre-wrap text-pretty">{answer}</p>
           
-          {/* Share button */}
-          <button
-            type="button"
-            onClick={handleShare}
+          {/* Share buttons container */}
+          <div
             className={cn(
-              "absolute -bottom-3 right-2 inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-[10px] font-medium shadow-sm transition-all",
-              copied
-                ? "border-primary/50 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-              "opacity-0 group-hover:opacity-100 focus:opacity-100",
+              "absolute -bottom-4 right-2 flex items-center gap-1 transition-opacity",
+              "opacity-0 group-hover:opacity-100 focus-within:opacity-100",
             )}
-            aria-label={copied ? "Copied!" : "Share this answer"}
           >
-            {copied ? (
-              <>
-                <Check className="h-3 w-3" aria-hidden="true" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Share2 className="h-3 w-3" aria-hidden="true" />
-                Share
-              </>
-            )}
-          </button>
+            {/* WhatsApp share */}
+            <button
+              type="button"
+              onClick={handleWhatsAppShare}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-[#25D366] shadow-sm transition-colors hover:bg-[#25D366]/10"
+              aria-label="Share on WhatsApp"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+              </svg>
+            </button>
+
+            {/* Native share / Copy button */}
+            <button
+              type="button"
+              onClick={handleNativeShare}
+              className={cn(
+                "inline-flex h-7 items-center gap-1 rounded-full border bg-background px-2 text-[10px] font-medium shadow-sm transition-colors",
+                copied
+                  ? "border-primary/50 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+              )}
+              aria-label={copied ? "Copied!" : "Share or copy"}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3 w-3" aria-hidden="true" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Share2 className="h-3 w-3" aria-hidden="true" />
+                  Share
+                </>
+              )}
+            </button>
+
+            {/* Copy for Instagram (separate button with tooltip) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={cn(
+                  "inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors",
+                  "hover:border-primary/50 hover:text-foreground",
+                  "group/copy",
+                )}
+                aria-label="Copy to clipboard (for Instagram, paste manually)"
+              >
+                <Copy className="h-3 w-3" aria-hidden="true" />
+              </button>
+              {/* Tooltip */}
+              <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-40 rounded-lg border border-border bg-popover px-2 py-1.5 text-[10px] text-popover-foreground opacity-0 shadow-md transition-opacity group-hover/copy:opacity-100">
+                Copy for Instagram — paste manually after copying
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
