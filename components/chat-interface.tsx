@@ -6,8 +6,12 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  Clock,
   Copy,
   Cpu,
+  MessageSquarePlus,
+  PanelLeftClose,
+  PanelLeftOpen,
   Send,
   Share2,
   Sparkles,
@@ -31,6 +35,17 @@ type Exchange = {
   loading?: boolean;
 };
 
+type Session = {
+  id: string;
+  title: string;
+  exchanges: Exchange[];
+  createdAt: number;
+  updatedAt: number;
+};
+
+const SESSIONS_KEY = "food-ai-sessions";
+const ACTIVE_SESSION_KEY = "food-ai-active-session";
+
 const SUGGESTIONS = [
   "What is a healthy dinner option?",
   "Suggest comfort foods for a cold day",
@@ -49,43 +64,133 @@ const QUICK_SUGGESTIONS = [
   "Comfort food",
 ];
 
-const STORAGE_KEY = "food-ai-chat-history";
+function createNewSession(): Session {
+  return {
+    id: crypto.randomUUID(),
+    title: "New Chat",
+    exchanges: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+function generateSessionTitle(exchanges: Exchange[]): string {
+  if (exchanges.length === 0) return "New Chat";
+  const firstQuestion = exchanges[0].question;
+  return firstQuestion.length > 40
+    ? firstQuestion.slice(0, 40) + "..."
+    : firstQuestion;
+}
 
 export function ChatInterface() {
   const [question, setQuestion] = useState("");
   const [model, setModel] = useState<ModelId>("llama-3.1-8b-instant");
-  const [exchanges, setExchanges] = useState<Exchange[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load chat history from localStorage on mount (client-side only)
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
+  const exchanges = activeSession?.exchanges ?? [];
+
+  // Load sessions from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Exchange[];
-        // Filter out any exchanges that were still loading when saved
-        const completed = parsed.filter((ex) => !ex.loading);
-        setExchanges(completed);
+      const savedSessions = localStorage.getItem(SESSIONS_KEY);
+      const savedActiveId = localStorage.getItem(ACTIVE_SESSION_KEY);
+      
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions) as Session[];
+        // Filter out loading states from all sessions
+        const cleaned = parsed.map((s) => ({
+          ...s,
+          exchanges: s.exchanges.filter((ex) => !ex.loading),
+        }));
+        setSessions(cleaned);
+        
+        if (savedActiveId && cleaned.some((s) => s.id === savedActiveId)) {
+          setActiveSessionId(savedActiveId);
+        } else if (cleaned.length > 0) {
+          setActiveSessionId(cleaned[0].id);
+        }
+      }
+      
+      // If no sessions exist, create one
+      if (!savedSessions || JSON.parse(savedSessions).length === 0) {
+        const newSession = createNewSession();
+        setSessions([newSession]);
+        setActiveSessionId(newSession.id);
       }
     } catch {
-      // Invalid JSON or localStorage unavailable - start fresh
+      const newSession = createNewSession();
+      setSessions([newSession]);
+      setActiveSessionId(newSession.id);
     }
     setIsHydrated(true);
   }, []);
 
-  // Save chat history to localStorage whenever exchanges change
+  // Save sessions to localStorage whenever they change
   useEffect(() => {
-    if (!isHydrated) return; // Don't save during initial hydration
+    if (!isHydrated) return;
     try {
-      // Only save completed exchanges (not loading ones)
-      const toSave = exchanges.filter((ex) => !ex.loading);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      const toSave = sessions.map((s) => ({
+        ...s,
+        exchanges: s.exchanges.filter((ex) => !ex.loading),
+      }));
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(toSave));
+      if (activeSessionId) {
+        localStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
+      }
     } catch {
-      // localStorage unavailable or quota exceeded - fail silently
+      // localStorage unavailable or quota exceeded
     }
-  }, [exchanges, isHydrated]);
+  }, [sessions, activeSessionId, isHydrated]);
+
+  function setExchanges(updater: Exchange[] | ((prev: Exchange[]) => Exchange[])) {
+    setSessions((prev) =>
+      prev.map((s) => {
+        if (s.id !== activeSessionId) return s;
+        const newExchanges =
+          typeof updater === "function" ? updater(s.exchanges) : updater;
+        return {
+          ...s,
+          exchanges: newExchanges,
+          title: generateSessionTitle(newExchanges),
+          updatedAt: Date.now(),
+        };
+      })
+    );
+  }
+
+  function startNewSession() {
+    const newSession = createNewSession();
+    setSessions((prev) => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+    setQuestion("");
+    inputRef.current?.focus();
+  }
+
+  function switchSession(sessionId: string) {
+    setActiveSessionId(sessionId);
+    setQuestion("");
+  }
+
+  function deleteSession(sessionId: string) {
+    setSessions((prev) => {
+      const remaining = prev.filter((s) => s.id !== sessionId);
+      if (remaining.length === 0) {
+        const newSession = createNewSession();
+        setActiveSessionId(newSession.id);
+        return [newSession];
+      }
+      if (sessionId === activeSessionId) {
+        setActiveSessionId(remaining[0].id);
+      }
+      return remaining;
+    });
+  }
 
   function submit(q: string) {
     const trimmed = q.trim();
@@ -124,26 +229,102 @@ export function ChatInterface() {
     submit(question);
   }
 
-  function clearChat() {
+  function clearCurrentChat() {
     if (isPending) return;
     setExchanges([]);
     setQuestion("");
-    // Also clear from localStorage
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // localStorage unavailable - fail silently
-    }
     inputRef.current?.focus();
   }
 
   const isEmpty = exchanges.length === 0;
 
   return (
-    <div className="flex w-full flex-col gap-6">
-      {isEmpty ? (
-        <EmptyState onPick={(q) => submit(q)} />
-      ) : (
+    <div className="flex w-full gap-4">
+      {/* Session History Sidebar */}
+      <aside
+        className={cn(
+          "flex flex-col gap-2 rounded-2xl border border-border bg-card/50 p-3 shadow-sm transition-all",
+          sidebarOpen ? "w-64 min-w-[16rem]" : "w-12 min-w-[3rem]",
+        )}
+      >
+        <div className="flex items-center justify-between gap-2">
+          {sidebarOpen && (
+            <h2 className="text-sm font-semibold text-foreground">Sessions</h2>
+          )}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+
+        {sidebarOpen && (
+          <>
+            <button
+              type="button"
+              onClick={startNewSession}
+              className={cn(
+                "flex items-center gap-2 rounded-xl border border-dashed border-border bg-background px-3 py-2 text-sm font-medium text-foreground/80 transition-colors",
+                "hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+              )}
+            >
+              <MessageSquarePlus className="h-4 w-4" />
+              New Chat
+            </button>
+
+            <div className="mt-2 flex flex-col gap-1 overflow-y-auto">
+              {sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={cn(
+                    "group flex items-start gap-2 rounded-xl px-3 py-2 text-sm transition-colors cursor-pointer",
+                    session.id === activeSessionId
+                      ? "bg-primary/10 text-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  )}
+                  onClick={() => switchSession(session.id)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate font-medium">{session.title}</p>
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {new Date(session.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSession(session.id);
+                    }}
+                    className={cn(
+                      "rounded p-1 text-muted-foreground opacity-0 transition-opacity",
+                      "hover:bg-destructive/10 hover:text-destructive",
+                      "group-hover:opacity-100",
+                    )}
+                    aria-label="Delete session"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </aside>
+
+      {/* Main Chat Area */}
+      <div className="flex flex-1 flex-col gap-6">
+        {isEmpty ? (
+          <EmptyState onPick={(q) => submit(q)} />
+        ) : (
         <>
           <div className="flex items-center justify-between border-b border-border/70 pb-3">
             <div className="flex items-baseline gap-2">
@@ -157,7 +338,7 @@ export function ChatInterface() {
             </div>
             <button
               type="button"
-              onClick={clearChat}
+              onClick={clearCurrentChat}
               disabled={isPending}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition-colors",
@@ -248,6 +429,7 @@ export function ChatInterface() {
           Press Enter to send · Answers use retrieved dishes only
         </p>
       </form>
+      </div>
     </div>
   );
 }
