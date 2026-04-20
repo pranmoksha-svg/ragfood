@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   AlertCircle,
   BookOpen,
@@ -49,12 +49,43 @@ const QUICK_SUGGESTIONS = [
   "Comfort food",
 ];
 
+const STORAGE_KEY = "food-ai-chat-history";
+
 export function ChatInterface() {
   const [question, setQuestion] = useState("");
   const [model, setModel] = useState<ModelId>("llama-3.1-8b-instant");
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load chat history from localStorage on mount (client-side only)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Exchange[];
+        // Filter out any exchanges that were still loading when saved
+        const completed = parsed.filter((ex) => !ex.loading);
+        setExchanges(completed);
+      }
+    } catch {
+      // Invalid JSON or localStorage unavailable - start fresh
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Save chat history to localStorage whenever exchanges change
+  useEffect(() => {
+    if (!isHydrated) return; // Don't save during initial hydration
+    try {
+      // Only save completed exchanges (not loading ones)
+      const toSave = exchanges.filter((ex) => !ex.loading);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch {
+      // localStorage unavailable or quota exceeded - fail silently
+    }
+  }, [exchanges, isHydrated]);
 
   function submit(q: string) {
     const trimmed = q.trim();
@@ -97,6 +128,12 @@ export function ChatInterface() {
     if (isPending) return;
     setExchanges([]);
     setQuestion("");
+    // Also clear from localStorage
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // localStorage unavailable - fail silently
+    }
     inputRef.current?.focus();
   }
 
