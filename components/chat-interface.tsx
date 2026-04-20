@@ -46,22 +46,40 @@ type Session = {
 const SESSIONS_KEY = "food-ai-sessions";
 const ACTIVE_SESSION_KEY = "food-ai-active-session";
 
-const SUGGESTIONS = [
+// Dynamic suggestions derived from food dataset categories
+const CATEGORY_SUGGESTIONS = [
+  { label: "Healthy meals", query: "What are some healthy meal options?" },
+  { label: "High protein", query: "Show me high-protein foods for muscle building" },
+  { label: "Vegetarian", query: "What vegetarian dishes do you recommend?" },
+  { label: "Vegan", query: "List vegan meal options" },
+  { label: "Low-carb", query: "Suggest low-carb dishes for weight management" },
+  { label: "Comfort food", query: "What comfort foods are available?" },
+] as const;
+
+const CUISINE_SUGGESTIONS = [
+  { label: "Mediterranean", query: "What Mediterranean dishes are healthy?" },
+  { label: "Asian", query: "Show me Asian cuisine options" },
+  { label: "Indian", query: "What Indian dishes are spicy and flavorful?" },
+  { label: "Italian", query: "Recommend Italian comfort foods" },
+  { label: "Japanese", query: "What Japanese dishes are available?" },
+  { label: "Thai", query: "Show me Thai curry options" },
+] as const;
+
+const HEALTH_SUGGESTIONS = [
+  { label: "Omega-3 rich", query: "Foods rich in omega-3 fatty acids" },
+  { label: "Antioxidants", query: "Dishes high in antioxidants" },
+  { label: "High fiber", query: "High fiber foods for digestion" },
+  { label: "Heart healthy", query: "Heart-healthy meal recommendations" },
+] as const;
+
+// Full example queries for empty state
+const EXAMPLE_QUERIES = [
   "What is a healthy dinner option?",
   "Suggest comfort foods for a cold day",
   "Low-calorie meals under 300 calories",
   "High-protein vegetarian dishes",
-  "What Indian dishes are spicy?",
-  "Mediterranean diet recommendations",
-];
-
-const QUICK_SUGGESTIONS = [
-  "Healthy meals",
-  "High protein",
-  "Vegetarian",
-  "Indian cuisine",
-  "Low calorie",
-  "Comfort food",
+  "What Mediterranean dishes are good for heart health?",
+  "Quick Asian stir-fry recipes",
 ];
 
 function createNewSession(): Session {
@@ -373,23 +391,54 @@ export function ChatInterface() {
         onSubmit={handleSubmit}
         className="sticky bottom-4 z-10 mt-2 flex flex-col gap-2"
       >
-        {/* Quick suggestion chips */}
-        <div className="flex flex-wrap items-center gap-1.5 px-2">
-          {QUICK_SUGGESTIONS.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => setQuestion(suggestion)}
-              disabled={isPending}
-              className={cn(
-                "rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors",
-                "hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              )}
-            >
-              {suggestion}
-            </button>
-          ))}
+        {/* Dynamic query suggestion chips */}
+        <div className="flex flex-col gap-2 px-2">
+          {/* Category row */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Diet
+            </span>
+            <div className="flex items-center gap-1.5">
+              {CATEGORY_SUGGESTIONS.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => setQuestion(s.query)}
+                  disabled={isPending}
+                  className={cn(
+                    "shrink-0 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors",
+                    "hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+                    "disabled:cursor-not-allowed disabled:opacity-50",
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Cuisine row */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Cuisine
+            </span>
+            <div className="flex items-center gap-1.5">
+              {CUISINE_SUGGESTIONS.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => setQuestion(s.query)}
+                  disabled={isPending}
+                  className={cn(
+                    "shrink-0 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm transition-colors",
+                    "hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+                    "disabled:cursor-not-allowed disabled:opacity-50",
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="flex items-center justify-between gap-2 px-2">
           <ModelPicker
@@ -716,20 +765,37 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
           Example Queries
         </h3>
         <div className="grid gap-2 sm:grid-cols-2">
-          {SUGGESTIONS.map((s) => (
+          {EXAMPLE_QUERIES.map((q) => (
             <button
-              key={s}
+              key={q}
               type="button"
-              onClick={() => onPick(s)}
+              onClick={() => onPick(q)}
               className={cn(
                 "rounded-xl border border-border bg-background px-3 py-2.5 text-left text-sm text-foreground/80 shadow-sm transition-colors",
                 "hover:border-primary/60 hover:bg-primary/5 hover:text-foreground",
               )}
             >
-              {s}
+              {q}
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Quick Category Chips */}
+      <div className="flex flex-wrap justify-center gap-2">
+        {CATEGORY_SUGGESTIONS.slice(0, 4).map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => onPick(s.query)}
+            className={cn(
+              "rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/70 shadow-sm transition-colors",
+              "hover:border-primary/60 hover:bg-primary/5 hover:text-foreground",
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
     </div>
   );
