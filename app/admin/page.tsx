@@ -115,7 +115,7 @@ export default function AdminPage() {
             value={`${stats?.successRate ?? 0}%`}
             icon={Activity}
             description="Successful queries"
-            highlight={stats?.successRate && stats.successRate >= 90}
+            highlight={Boolean(stats?.successRate && stats.successRate >= 90)}
           />
           <StatCard
             title="Last 24 Hours"
