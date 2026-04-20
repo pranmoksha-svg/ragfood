@@ -51,7 +51,7 @@ const QUICK_SUGGESTIONS = [
 
 export function ChatInterface() {
   const [question, setQuestion] = useState("");
-  const [model, setModel] = useState<ModelId>(MODEL_OPTIONS[0].id);
+  const [model, setModel] = useState<ModelId>("llama-3.1-8b-instant");
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -362,6 +362,12 @@ function AnswerBlock({
   );
 }
 
+const FALLBACK_MODEL = {
+  id: "llama-3.1-8b-instant" as ModelId,
+  label: "Llama 3.1 8B Instant",
+  description: "Fastest · great for quick answers",
+};
+
 function ModelPicker({
   value,
   onChange,
@@ -371,7 +377,8 @@ function ModelPicker({
   onChange: (id: ModelId) => void;
   disabled?: boolean;
 }) {
-  const selected = MODEL_OPTIONS.find((m) => m.id === value) ?? MODEL_OPTIONS[0];
+  const models = MODEL_OPTIONS?.length ? MODEL_OPTIONS : [FALLBACK_MODEL];
+  const selected = models.find((m) => m.id === value) ?? models[0];
 
   return (
     <label
@@ -395,7 +402,7 @@ function ModelPicker({
         onChange={(e) => onChange(e.target.value as ModelId)}
         className="absolute inset-0 cursor-pointer opacity-0"
       >
-        {MODEL_OPTIONS.map((m) => (
+        {models.map((m) => (
           <option key={m.id} value={m.id}>
             {m.label} — {m.description}
           </option>
