@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Foodie RAG palette
+       Primary: warm terracotta orange
+       Accent:  fresh sage green
+       Neutrals: cream, charcoal, warm gray
+    */
+    --background: 40 38% 97%;
+    --foreground: 20 14% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 14% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 15%;
+
+    --primary: 18 78% 52%;
+    --primary-foreground: 40 38% 98%;
+
+    --secondary: 36 35% 92%;
+    --secondary-foreground: 20 14% 15%;
+
+    --muted: 36 25% 94%;
+    --muted-foreground: 25 8% 40%;
+
+    --accent: 140 28% 42%;
+    --accent-foreground: 40 38% 98%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 40 38% 98%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 18 78% 52%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 20 14% 10%;
+    --foreground: 40 30% 94%;
+
+    --card: 20 14% 13%;
+    --card-foreground: 40 30% 94%;
+
+    --popover: 20 14% 13%;
+    --popover-foreground: 40 30% 94%;
+
+    --primary: 18 78% 55%;
+    --primary-foreground: 20 14% 10%;
+
+    --secondary: 20 10% 18%;
+    --secondary-foreground: 40 30% 94%;
+
+    --muted: 20 10% 18%;
+    --muted-foreground: 30 10% 65%;
+
+    --accent: 140 28% 48%;
+    --accent-foreground: 20 14% 10%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 40 30% 94%;
+
+    --border: 20 10% 22%;
+    --input: 20 10% 22%;
+    --ring: 18 78% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply bg-background;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Subtle background pattern for warmth */
+.food-bg {
+  background-image:
+    radial-gradient(circle at 20% 10%, hsl(var(--primary) / 0.08) 0, transparent 40%),
+    radial-gradient(circle at 80% 90%, hsl(var(--accent) / 0.08) 0, transparent 40%);
+}
+
+/* Typing dots animation */
+.typing-dot {
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
