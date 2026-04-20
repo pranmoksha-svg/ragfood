@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { askFoodieRag, type SourceDoc } from "@/app/actions";
+import { trackQuery } from "@/lib/analytics";
 import { MODEL_OPTIONS, type ModelId } from "@/lib/models";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,8 +223,21 @@ export function ChatInterface() {
     setQuestion("");
 
     const selectedModel = model;
+    const startTime = performance.now();
+
     startTransition(async () => {
       const result = await askFoodieRag(trimmed, selectedModel);
+      const responseTime = Math.round(performance.now() - startTime);
+
+      // Track analytics
+      trackQuery({
+        query: trimmed,
+        timestamp: Date.now(),
+        responseTime,
+        success: result.ok,
+        model: selectedModel,
+      });
+
       setExchanges((prev) =>
         prev.map((ex) =>
           ex.id === id
