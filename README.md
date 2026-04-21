@@ -2,7 +2,7 @@
 
 A full-stack AI-powered food assistant that uses Retrieval-Augmented Generation (RAG) to provide accurate, context-aware responses about food, nutrition, and cooking.
 
-**Live Demo:** [https://ragfood.vercel.app](https://ragfood.vercel.app) *(update with your deployed URL)*
+**Live Demo:** [https://ragfood-five.vercel.app/]
 
 ---
 
